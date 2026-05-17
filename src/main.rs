@@ -1,6 +1,9 @@
+use std::{cell::RefCell, rc::Rc};
+
 mod css;
 mod dom;
 mod html;
+mod style;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -16,4 +19,9 @@ fn main() {
     println!("{:#?}", node);
     println!("=== Stylesheet ===");
     println!("{:#?}", stylesheet);
+
+    let root = Rc::new(RefCell::new(node));
+    let styled = style::style_tree(root, &stylesheet);
+    println!("=== StyledTree ===");
+    println!("{:#?}", styled);
 }

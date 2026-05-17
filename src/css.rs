@@ -42,7 +42,7 @@ pub struct Declaration {
 }
 
 /// CSS値の種別。
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Value {
     /// キーワード値（例: "red", "block"）。
     Keyword(String),
@@ -53,14 +53,14 @@ pub enum Value {
 }
 
 /// CSS長さの単位。
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum Unit {
     /// ピクセル単位。
     Px,
 }
 
 /// RGB色値。各チャンネル 0–255。
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Color {
     pub r: u8,
     pub g: u8,
@@ -241,6 +241,23 @@ impl Parser {
     }
 }
 
+/// CSS文字列をパースして `Stylesheet` を返す。
+pub fn parse(source: String) -> Stylesheet {
+    let mut parser = Parser {
+        input: source,
+        pos: 0,
+    };
+    let mut rules = vec![];
+    while !parser.eof() {
+        parser.skip_whitespace();
+        if parser.eof() {
+            break;
+        }
+        rules.push(parser.parse_rule());
+    }
+    Stylesheet { rules }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -286,11 +303,8 @@ mod tests {
     #[test]
     fn test_parse_selector() {
         let ss = parse("h1 { color: red; }".to_string());
-        if let Selector::Simple(ref s) = ss.rules[0].selectors[0] {
-            assert_eq!(s.tag_name, Some("h1".to_string()));
-        } else {
-            panic!("Simple selector expected");
-        }
+        let Selector::Simple(ref s) = ss.rules[0].selectors[0];
+        assert_eq!(s.tag_name, Some("h1".to_string()));
     }
 
     #[test]
@@ -298,21 +312,4 @@ mod tests {
         let ss = parse("h1 { color: red; } p { font-size: 16px; }".to_string());
         assert_eq!(ss.rules.len(), 2);
     }
-}
-
-/// CSS文字列をパースして `Stylesheet` を返す。
-pub fn parse(source: String) -> Stylesheet {
-    let mut parser = Parser {
-        input: source,
-        pos: 0,
-    };
-    let mut rules = vec![];
-    while !parser.eof() {
-        parser.skip_whitespace();
-        if parser.eof() {
-            break;
-        }
-        rules.push(parser.parse_rule());
-    }
-    Stylesheet { rules }
 }
