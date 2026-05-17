@@ -2,23 +2,42 @@ use crate::css::*;
 use crate::dom::*;
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
+/// プロパティ名と値のマップ。
+pub type PropertyMap = HashMap<String, Value>;
+
+/// CSSを適用済みのDOMノード。
 #[derive(Debug)]
 pub struct StyledNode {
-    /// DOMノード
+    /// DOMノード。
     pub node: Rc<RefCell<Node>>,
-    /// 適用されたCSSプロパティ
+    /// 適用されたCSSプロパティ。
     pub properties: PropertyMap,
+    /// スタイル適用済みの子ノード。
     pub children: Vec<StyledNode>,
 }
 
-pub type PropertyMap = HashMap<String, Value>;
+impl StyledNode {
+    /// `display` プロパティの値を返す。未指定の場合は `Inline`。
+    pub fn display(&self) -> Display {
+        match self.properties.get("display").map(|v| v.as_str()) {
+            Some("block") => Display::Block,
+            Some("none") => Display::None,
+            _ => Display::Inline,
+        }
+    }
+}
 
+/// CSSの `display` プロパティの種別。
 pub enum Display {
+    /// インラインレイアウト。
     Inline,
+    /// ブロックレイアウト。
     Block,
+    /// 非表示。
     None,
 }
 
+/// 単純セレクタが要素にマッチするか判定する。
 fn matches_simple_selector(elem: &ElementData, selector: &SimpleSelector) -> bool {
     // タグ名チェック
     if let Some(ref tag) = selector.tag_name
@@ -44,6 +63,7 @@ fn matches_simple_selector(elem: &ElementData, selector: &SimpleSelector) -> boo
     true
 }
 
+/// DOMツリーにスタイルシートを適用してスタイルツリーを構築する。
 pub fn style_tree(node: Rc<RefCell<Node>>, stylesheet: &Stylesheet) -> StyledNode {
     let properties = match &node.borrow().node_type {
         NodeType::Element(elem) => apply_styles(elem, stylesheet),
@@ -62,6 +82,7 @@ pub fn style_tree(node: Rc<RefCell<Node>>, stylesheet: &Stylesheet) -> StyledNod
     }
 }
 
+/// マッチするルールのプロパティを要素に適用する。
 fn apply_styles(elem: &ElementData, stylesheet: &Stylesheet) -> PropertyMap {
     let mut properties = HashMap::new();
     for rule in &stylesheet.rules {

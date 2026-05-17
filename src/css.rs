@@ -52,6 +52,15 @@ pub enum Value {
     Color(Color),
 }
 
+impl Value {
+    pub fn as_str(&self) -> &str {
+        match self {
+            Value::Keyword(s) => s,
+            _ => "",
+        }
+    }
+}
+
 /// CSS長さの単位。
 #[derive(Debug, Clone, Copy)]
 pub enum Unit {

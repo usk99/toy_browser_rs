@@ -3,6 +3,7 @@ use std::{cell::RefCell, rc::Rc};
 mod css;
 mod dom;
 mod html;
+mod layout;
 mod style;
 
 fn main() {
@@ -24,4 +25,15 @@ fn main() {
     let styled = style::style_tree(root, &stylesheet);
     println!("=== StyledTree ===");
     println!("{:#?}", styled);
+
+    let mut layout = layout::layout_tree(&styled);
+    let root_rect = layout::Rect {
+        x: 0.0,
+        y: 0.0,
+        width: 800.0,
+        height: 0.0,
+    };
+    layout.layout(&root_rect);
+    println!("=== Layout ===");
+    println!("{:#?}", layout);
 }
