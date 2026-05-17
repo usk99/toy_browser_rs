@@ -1,43 +1,49 @@
 /// タグ名・ID・クラスによる単純セレクタ。
-struct SimpleSelector {
+#[derive(Debug)]
+pub struct SimpleSelector {
     /// タグ名（例: "h1", "p"）。`None` はワイルドカード。
-    tag_name: Option<String>,
+    pub tag_name: Option<String>,
     /// ID（例: "main"）。
-    id: Option<String>,
+    pub id: Option<String>,
     /// クラスリスト（例: ["foo", "bar"]）。
-    class: Vec<String>,
+    pub class: Vec<String>,
 }
 
 /// CSSセレクタの種別。
-enum Selector {
+#[derive(Debug)]
+pub enum Selector {
     /// 単純セレクタ（タグ名・ID・クラスの組み合わせ）。
     Simple(SimpleSelector),
 }
 
 /// CSSスタイルシート全体。複数のルールを持つ。
+#[derive(Debug)]
 pub struct Stylesheet {
     /// ルールのリスト。
-    rules: Vec<Rule>,
+    pub rules: Vec<Rule>,
 }
 
 /// 1つのCSSルール（セレクタ群 + 宣言群）。
-struct Rule {
+#[derive(Debug)]
+pub struct Rule {
     /// このルールのセレクタリスト。
-    selectors: Vec<Selector>,
+    pub selectors: Vec<Selector>,
     /// このルールの宣言リスト。
-    declarations: Vec<Declaration>,
+    pub declarations: Vec<Declaration>,
 }
 
 /// 1つのCSS宣言（プロパティ名と値のペア）。
-struct Declaration {
+#[derive(Debug)]
+pub struct Declaration {
     /// プロパティ名（例: "color", "font-size"）。
-    name: String,
+    pub name: String,
     /// プロパティ値。
-    value: Value,
+    pub value: Value,
 }
 
 /// CSS値の種別。
-enum Value {
+#[derive(Debug)]
+pub enum Value {
     /// キーワード値（例: "red", "block"）。
     Keyword(String),
     /// 数値と単位（例: 16px）。
@@ -47,16 +53,18 @@ enum Value {
 }
 
 /// CSS長さの単位。
-enum Unit {
+#[derive(Debug)]
+pub enum Unit {
     /// ピクセル単位。
     Px,
 }
 
 /// RGB色値。各チャンネル 0–255。
-struct Color {
-    r: u8,
-    g: u8,
-    b: u8,
+#[derive(Debug)]
+pub struct Color {
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
 }
 
 struct Parser {
@@ -230,6 +238,65 @@ impl Parser {
             declarations.push(self.parse_declaration());
         }
         declarations
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_color() {
+        let mut p = Parser {
+            input: "#ff0080".to_string(),
+            pos: 0,
+        };
+        if let Value::Color(c) = p.parse_color() {
+            assert_eq!(c.r, 255);
+            assert_eq!(c.g, 0);
+            assert_eq!(c.b, 128);
+        } else {
+            panic!("Color expected");
+        }
+    }
+
+    #[test]
+    fn test_parse_length() {
+        let mut p = Parser {
+            input: "16px".to_string(),
+            pos: 0,
+        };
+        if let Value::Length(num, Unit::Px) = p.parse_length() {
+            assert_eq!(num, 16.0);
+        } else {
+            panic!("Length expected");
+        }
+    }
+
+    #[test]
+    fn test_parse_rule() {
+        let ss = parse("p { color: red; }".to_string());
+        assert_eq!(ss.rules.len(), 1);
+        let rule = &ss.rules[0];
+        assert_eq!(rule.declarations.len(), 1);
+        assert_eq!(rule.declarations[0].name, "color");
+        assert!(matches!(rule.declarations[0].value, Value::Keyword(ref s) if s == "red"));
+    }
+
+    #[test]
+    fn test_parse_selector() {
+        let ss = parse("h1 { color: red; }".to_string());
+        if let Selector::Simple(ref s) = ss.rules[0].selectors[0] {
+            assert_eq!(s.tag_name, Some("h1".to_string()));
+        } else {
+            panic!("Simple selector expected");
+        }
+    }
+
+    #[test]
+    fn test_parse_multiple_rules() {
+        let ss = parse("h1 { color: red; } p { font-size: 16px; }".to_string());
+        assert_eq!(ss.rules.len(), 2);
     }
 }
 
