@@ -4,6 +4,7 @@ mod css;
 mod dom;
 mod html;
 mod layout;
+mod painting;
 mod style;
 
 fn main() {
@@ -36,4 +37,8 @@ fn main() {
     layout.layout(&root_rect);
     println!("=== Layout ===");
     println!("{:#?}", layout);
+
+    let display_list = painting::build_display_list(&layout);
+    println!("=== DisplayList ===");
+    println!("{:#?}", display_list);
 }

@@ -2,16 +2,18 @@ use crate::style::*;
 
 /// レイアウトツリーの1ノード。
 #[derive(Debug)]
-pub struct LayoutBox {
+pub struct LayoutBox<'a> {
+    /// 対応するスタイルノードへの参照。
+    pub styled: &'a StyledNode,
     /// このボックスの寸法。
     pub dimensions: Dimensions,
     /// ボックスの種別。
     pub box_type: BoxType,
     /// 子ボックスのリスト。
-    pub children: Vec<LayoutBox>,
+    pub children: Vec<LayoutBox<'a>>,
 }
 
-impl LayoutBox {
+impl<'a> LayoutBox<'a> {
     /// ブロックのレイアウトを計算する。
     pub fn layout(&mut self, containing: &Rect) {
         self.calculate_block_width(containing);
@@ -54,14 +56,14 @@ pub enum BoxType {
 /// ボックスの寸法（content・padding・border・margin）。
 #[derive(Debug)]
 pub struct Dimensions {
-    content: Rect,
+    pub content: Rect,
     padding: EdgeSizes,
     border: EdgeSizes,
     margin: EdgeSizes,
 }
 
 /// 矩形領域（位置とサイズ）。座標原点は左上、Y軸は下向き。
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone, Copy)]
 pub struct Rect {
     pub x: f32,
     pub y: f32,
@@ -79,7 +81,7 @@ pub struct EdgeSizes {
 }
 
 /// スタイルツリーからレイアウトツリーを構築する。
-pub fn layout_tree(node: &StyledNode) -> LayoutBox {
+pub fn layout_tree(node: &'_ StyledNode) -> LayoutBox<'_> {
     let dimensions = Dimensions {
         content: Rect::default(),
         padding: EdgeSizes::default(),
@@ -96,6 +98,7 @@ pub fn layout_tree(node: &StyledNode) -> LayoutBox {
     let children = node.children.iter().map(layout_tree).collect();
 
     LayoutBox {
+        styled: node,
         dimensions,
         box_type,
         children,
