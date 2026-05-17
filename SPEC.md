@@ -143,12 +143,12 @@ Tauri は OS の WebView(WebKit / WebView2)に依存するため、**レンダ�
 +-----------+   +-------------+   +------------+
 | HTML file |-->| HTML Parser |-->| DOM Tree   |--+
 +-----------+   +-------------+   +------------+  |
-                                                   |
+                                                  |
 +-----------+   +-------------+   +------------+  |
 | CSS file  |-->| CSS Parser  |-->| Stylesheet |--+
 +-----------+   +-------------+   +------------+  |
-                                                   |
-                                                   v
+                                                  |
+                                                  v
                                              +---------+
                                              |  Style  |  DOM x CSS -> StyledNode
                                              +----+----+
@@ -255,7 +255,7 @@ toy_browser_rs/
 ├── SPEC.md              # 本仕様書
 ├── README.md            # 使い方(将来作成)
 ├── assets/
-│   └── fonts/          # 同梱フォント(Noto Sans Regular)
+│   └── fonts/           # 同梱フォント(Noto Sans Regular)
 ├── examples/            # 動作確認用の .html / .css サンプル(M1 以降で追加)
 │   ├── hello.html
 │   └── hello.css
