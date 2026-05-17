@@ -136,3 +136,45 @@ pub fn parse(source: String) -> Node {
     };
     parser.parse_node()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::dom::NodeType;
+
+    #[test]
+    fn test_parse_text() {
+        let node = parse("Hello".to_string());
+        assert!(matches!(node.node_type, NodeType::Text(ref s) if s == "Hello"));
+    }
+
+    #[test]
+    fn test_parse_element() {
+        let node = parse("<p>Hello</p>".to_string());
+        assert!(matches!(
+            node.node_type,
+            NodeType::Element(ref e) if e.tag_name == "p"
+        ));
+        assert_eq!(node.children.len(), 1);
+    }
+
+    #[test]
+    fn test_parse_nested() {
+        let node = parse("<html><body><p>Hello</p></body></html>".to_string());
+        assert!(matches!(
+            node.node_type,
+            NodeType::Element(ref e) if e.tag_name == "html"
+        ));
+        assert_eq!(node.children.len(), 1);
+    }
+
+    #[test]
+    fn test_parse_attrs() {
+        let node = parse("<p class=\"foo\">text</p>".to_string());
+        if let NodeType::Element(ref e) = node.node_type {
+            assert_eq!(e.attrs.get("class").unwrap(), "foo");
+        } else {
+            panic!("Element expected");
+        }
+    }
+}

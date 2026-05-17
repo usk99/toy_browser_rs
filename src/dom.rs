@@ -2,16 +2,16 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 /// HTML要素のタグ名と属性を保持する。
 #[derive(Debug)]
-struct ElementData {
+pub struct ElementData {
     /// タグ名（例: "div", "p"）
-    tag_name: String,
+    pub tag_name: String,
     /// 属性マップ（例: "class" -> "foo"）
-    attrs: HashMap<String, String>,
+    pub attrs: HashMap<String, String>,
 }
 
 /// DOMノードの種別。
 #[derive(Debug)]
-enum NodeType {
+pub enum NodeType {
     /// 要素ノード（タグ）
     Element(ElementData),
     /// テキストノード
@@ -24,9 +24,9 @@ enum NodeType {
 #[derive(Debug)]
 pub struct Node {
     /// このノードの種別。
-    node_type: NodeType,
+    pub node_type: NodeType,
     /// 子ノードのリスト。
-    children: Vec<Rc<RefCell<Node>>>,
+    pub children: Vec<Rc<RefCell<Node>>>,
 }
 impl Node {
     /// テキストノードを生成する。
@@ -48,6 +48,40 @@ impl Node {
                 attrs,
             }),
             children,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_create_text() {
+        let node = Node::create_text("Hello".to_string());
+        assert!(matches!(node.node_type, NodeType::Text(ref s) if s == "Hello"));
+        assert!(node.children.is_empty());
+    }
+
+    #[test]
+    fn test_create_element() {
+        let node = Node::create_element("div".to_string(), HashMap::new(), vec![]);
+        assert!(matches!(
+            node.node_type,
+            NodeType::Element(ref e) if e.tag_name == "div"
+        ));
+        assert!(node.children.is_empty());
+    }
+
+    #[test]
+    fn test_create_element_with_attrs() {
+        let mut attrs = HashMap::new();
+        attrs.insert("class".to_string(), "foo".to_string());
+        let node = Node::create_element("p".to_string(), attrs, vec![]);
+        if let NodeType::Element(ref e) = node.node_type {
+            assert_eq!(e.attrs.get("class").unwrap(), "foo");
+        } else {
+            panic!("Element expected");
         }
     }
 }
