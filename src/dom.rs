@@ -1,6 +1,7 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 /// HTML要素のタグ名と属性を保持する。
+#[derive(Debug)]
 struct ElementData {
     /// タグ名（例: "div", "p"）
     tag_name: String,
@@ -9,6 +10,7 @@ struct ElementData {
 }
 
 /// DOMノードの種別。
+#[derive(Debug)]
 enum NodeType {
     /// 要素ノード（タグ）
     Element(ElementData),
@@ -19,6 +21,7 @@ enum NodeType {
 }
 
 /// DOMツリーの1ノード。
+#[derive(Debug)]
 pub struct Node {
     /// このノードの種別。
     node_type: NodeType,
