@@ -1,4 +1,4 @@
-use crate::style::*;
+use crate::{css::*, style::*};
 
 /// レイアウトツリーの1ノード。
 #[derive(Debug)]
@@ -42,7 +42,12 @@ impl<'a> LayoutBox<'a> {
         }
     }
 
-    pub fn calculate_block_height(&mut self) {}
+    /// `height` プロパティが指定されていれば content の高さを上書きする。
+    fn calculate_block_height(&mut self) {
+        if let Some(Value::Length(h, Unit::Px)) = self.styled.properties.get("height") {
+            self.dimensions.content.height = *h;
+        }
+    }
 }
 
 /// ボックスのレイアウト種別。
