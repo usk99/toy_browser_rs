@@ -248,14 +248,24 @@ src/
 - winit イベントループ、softbuffer ピクセル転送、tiny-skia 描画の統合。
 - WSL2 + X11 環境での動作確認済み。
 
-### M7: テキスト描画(進行中)
+### M7: テキスト描画 ✅
 
-- `fontdue` でテキストを描画。`font-size`、`color` を反映。
-- 同梱フォント(Noto Sans Regular)を `include_bytes!` で埋め込み。
+- `fontdue` でテキストを描画。
+- アルファブレンディングでアンチエイリアスを実現。
+- 同梱フォント(Ubuntu Regular)を `include_bytes!` で埋め込み。
 
-### M8(拡張余地):インラインレイアウト・`<link>` 対応・スクロール
+### M8: padding / margin 対応
 
-- 余裕があれば着手。
+- ボックスモデルの余白(`padding`, `margin`)をレイアウトに反映。
+- `Dimensions` の `padding`/`margin` フィールドを実際に使う。
+
+### M9: ウィンドウリサイズ対応
+
+- リサイズイベント時にレイアウトを再計算して再描画。
+
+### M10: インラインレイアウト
+
+- テキストの横並び・折り返しに対応。
 
 ---
 
