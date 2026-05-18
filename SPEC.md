@@ -72,15 +72,18 @@ Rust によるブラウザ自作を通じて、HTML パース・CSS パース・
 # ビルド
 cargo build
 
-# 実行(ローカル HTML ファイルを指定)
-cargo run -- examples/hello.html
+# 実行(引数なしの場合は test.html / test.css を使用)
+cargo run
+
+# 実行(ファイルを指定)
+cargo run -- path/to/file.html path/to/file.css
 
 # テスト
 cargo test
 ```
 
-- CLI 引数が無い場合は使い方を表示して終了する。
-- 引数で渡されたパスを基準に、HTML 内の相対パス(`<link href="...">` 等)を解決する。
+- CLI 引数が無い場合はデフォルトで `test.html` / `test.css` を読み込む。
+- WSL2 環境では Wayland を無効化して X11 で描画する（`main.rs` 内で設定済み）。
 
 ### 3.2 エラーハンドリング方針
 
@@ -214,35 +217,45 @@ src/
 
 学習効果を最大化するため、**動くものを段階的に育てる** 方針で進める。
 
-### M1: DOM 構築まで
+### M1: DOM 構築まで ✅
 
 - HTML サブセットのパーサ実装。
 - CLI で `.html` を読み、`Debug` 出力で DOM ツリーを表示できる。
 - 単体テスト:代表的な入力でツリー構造を検証。
 
-### M2: CSS パース + スタイル解決
+### M2: CSS パース ✅
 
 - CSS サブセットのパーサ実装。
-- スタイル解決(タグ/ID/クラスセレクタのマッチ、詳細度ソート)。
-- `StyledNode` をデバッグ表示できる。
+- タグ/ID/クラスセレクタ、`color`/`background-color`/`font-size`/`height` 等のプロパティに対応。
 
-### M3: ブロックレイアウト
+### M3: スタイル解決 ✅
 
-- `display: block` 要素のみのレイアウト計算(width / height / margin / padding / border)。
-- ウィンドウサイズを固定値とした矩形配置までを `println!` で検証。
+- DOM × CSS → `StyledNode` の構築。
+- タグ/ID/クラスセレクタのマッチング実装。
 
-### M4: 描画(矩形のみ)
+### M4: ブロックレイアウト ✅
 
-- `winit` + `softbuffer` + `tiny-skia` で背景色・ボーダーを描画したウィンドウ表示。
-- リサイズで再レイアウト。
+- `display: block` 要素のレイアウト計算(width / height)。
+- `LayoutBox` ツリーの構築と位置・サイズの確定。
 
-### M5: テキスト描画(MVP 完成)
+### M5: 描画(矩形) ✅
 
-- `fontdue` でテキストを描画。`font-size`, `color` を反映。
+- `DisplayList` 生成(`background-color` を矩形として描画)。
+- `winit` + `softbuffer` + `tiny-skia` でウィンドウ表示。
 
-### M6(拡張余地):インラインレイアウト・`<link>` 対応・スクロール
+### M6: レンダラ完成 ✅
 
-- 余裕があれば着手。MVP の完成は M5 を目標とする。
+- winit イベントループ、softbuffer ピクセル転送、tiny-skia 描画の統合。
+- WSL2 + X11 環境での動作確認済み。
+
+### M7: テキスト描画(進行中)
+
+- `fontdue` でテキストを描画。`font-size`、`color` を反映。
+- 同梱フォント(Noto Sans Regular)を `include_bytes!` で埋め込み。
+
+### M8(拡張余地):インラインレイアウト・`<link>` 対応・スクロール
+
+- 余裕があれば着手。
 
 ---
 
@@ -253,24 +266,19 @@ toy_browser_rs/
 ├── Cargo.toml
 ├── Cargo.lock
 ├── SPEC.md              # 本仕様書
-├── README.md            # 使い方(将来作成)
+├── test.html            # 動作確認用サンプル
+├── test.css             # 動作確認用サンプル
 ├── assets/
-│   └── fonts/           # 同梱フォント(Noto Sans Regular)
-├── examples/            # 動作確認用の .html / .css サンプル(M1 以降で追加)
-│   ├── hello.html
-│   └── hello.css
+│   └── fonts/           # 同梱フォント(Noto Sans Regular) ※M7で追加予定
 └── src/
-    ├── main.rs
-    ├── lib.rs
-    ├── dom.rs
-    ├── html.rs
-    ├── css.rs
-    ├── style.rs
-    ├── layout.rs
-    ├── painting.rs
-    └── renderer/
-        ├── mod.rs
-        └── window.rs
+    ├── main.rs          # エントリポイント。CLI 引数解析、パイプライン呼び出し
+    ├── dom.rs           # DOM のデータ構造(Node, NodeType, ElementData)
+    ├── html.rs          # HTML パーサ(文字列 → DOM)
+    ├── css.rs           # CSS のデータ構造 + CSS パーサ
+    ├── style.rs         # スタイル解決(DOM × CSS → StyledNode)
+    ├── layout.rs        # レイアウト計算(StyledNode → LayoutBox)
+    ├── painting.rs      # ペイント(LayoutBox → DisplayList)
+    └── renderer.rs      # 描画バックエンド(winit + softbuffer + tiny-skia)
 ```
 
 ---
