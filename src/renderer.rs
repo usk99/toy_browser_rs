@@ -70,6 +70,11 @@ impl ApplicationHandler for App {
             WindowEvent::CloseRequested => {
                 event_loop.exit();
             }
+            WindowEvent::Resized(_) => {
+                if let Some(window) = &self.window {
+                    window.request_redraw();
+                }
+            }
             WindowEvent::RedrawRequested => {
                 let window = self.window.as_ref().unwrap();
                 let surface = self.surface.as_mut().unwrap();
