@@ -69,7 +69,7 @@ pub enum Unit {
 }
 
 /// RGB色値。各チャンネル 0–255。
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct Color {
     pub r: u8,
     pub g: u8,

@@ -6,6 +6,19 @@ use crate::layout::*;
 pub enum DisplayCommand {
     /// 指定した領域を単色で塗りつぶす。
     SolidColor(Color, Rect),
+    /// テキストを指定位置に描画する。
+    Text {
+        /// 描画する文字列。
+        text: String,
+        /// 描画開始X座標（左端）。
+        x: f32,
+        /// ベースラインのY座標。
+        y: f32,
+        /// 文字色。
+        color: Color,
+        /// フォントサイズ（ピクセル）。
+        font_size: f32,
+    },
 }
 
 /// 描画命令のリスト。先頭から順に描画する。
@@ -21,6 +34,7 @@ pub fn build_display_list(layout: &LayoutBox) -> DisplayList {
 /// 1つのボックスと子ボックスを再帰的に描画命令に変換する。
 fn render_box(list: &mut DisplayList, layout: &LayoutBox) {
     render_background(list, layout);
+    render_text(list, layout);
     for child in &layout.children {
         render_box(list, child);
     }
@@ -33,5 +47,18 @@ fn render_background(list: &mut DisplayList, layout: &LayoutBox) {
             *color,
             layout.dimensions.content,
         ));
+    }
+}
+
+/// テキストノードがあれば `Text` 命令を追加する。
+fn render_text(list: &mut DisplayList, layout: &LayoutBox) {
+    if let crate::dom::NodeType::Text(text) = &layout.styled.node.borrow().node_type {
+        list.push(DisplayCommand::Text {
+            text: text.clone(),
+            x: layout.dimensions.content.x + 8.0,
+            y: layout.dimensions.content.y + 18.0,
+            color: Color::default(),
+            font_size: 18.0,
+        })
     }
 }
