@@ -24,13 +24,33 @@ impl<'a> LayoutBox<'a> {
 
     /// 幅を親のcontent幅に合わせる。
     fn calculate_block_width(&mut self, containing: &Rect) {
-        self.dimensions.content.width = containing.width;
+        let margin_left = self.get_length("margin-left");
+        let margin_right = self.get_length("margin-right");
+        let padding_left = self.get_length("padding-left");
+        let padding_right = self.get_length("padding-right");
+        self.dimensions.content.width =
+            containing.width - margin_left - margin_right - padding_left - padding_right;
+        self.dimensions.padding.left = padding_left;
+        self.dimensions.padding.right = padding_right;
+        self.dimensions.margin.left = margin_left;
+        self.dimensions.margin.right = margin_right;
     }
 
     /// 位置を親のcontent領域の下端に設定する。
     fn calculate_block_position(&mut self, containing: &Rect) {
-        self.dimensions.content.x = containing.x;
-        self.dimensions.content.y = containing.y + containing.height;
+        let margin_top = self.get_length("margin-top");
+        let padding_top = self.get_length("padding-top");
+        self.dimensions.content.x =
+            containing.x + self.dimensions.margin.left + self.dimensions.padding.left;
+        self.dimensions.content.y = containing.y + containing.height + margin_top + padding_top;
+    }
+
+    // properties から px 値を取得するヘルパー。なければ 0.0 を返す。
+    fn get_length(&self, name: &str) -> f32 {
+        match self.styled.properties.get(name) {
+            Some(Value::Length(v, Unit::Px)) => *v,
+            _ => 0.0,
+        }
     }
 
     /// 子ボックスを順に並べ、自身の高さを積み上げる。
